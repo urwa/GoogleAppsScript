@@ -1,4 +1,4 @@
-function testing() {
+function emailLabeling() {
   var DUPLICATE = _getLabel();
   var labels = GmailApp.getUserLabelByName("Label A");
   if(labels != null){
