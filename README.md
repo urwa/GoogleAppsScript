@@ -17,3 +17,5 @@ Working GUI of Action Tracker with buttons and graphics.
 Supplier Management System for suppliers and customers to track and automate the process of products supply.
 A list of SUPPLIERS & CUSTOMERS > Get LEADS from CUSTOMERS > SUPPLIERS BID on those LEADS > Select a BID based on some criteria >
 Make OFFER to CUSTOMERS > CUSTOMER accept the OFFER and place an ORDER.
+
+## Email-Labeling
