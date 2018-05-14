@@ -19,3 +19,4 @@ A list of SUPPLIERS & CUSTOMERS > Get LEADS from CUSTOMERS > SUPPLIERS BID on th
 Make OFFER to CUSTOMERS > CUSTOMER accept the OFFER and place an ORDER.
 
 ## Email-Labeling
+For every incoming email, compares the body of email with past emails in a particular label. If the email body is a duplicate, moves the new email to a separate label.
