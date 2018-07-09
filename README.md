@@ -20,3 +20,6 @@ Make OFFER to CUSTOMERS > CUSTOMER accept the OFFER and place an ORDER.
 
 ## Email-Labeling
 For every incoming email, compares the body of email with past emails in a particular label. If the email body is a duplicate, moves the new email to a separate label.
+
+
+DISCLAIMER: SOME PART OF THE SCRIPTS MIGHT BE TAKEN FROM OTHER SOURCES AND EDITTED ACCORDING TO MY NEEDS. NO COPYRIGHTS INFRINGEMENT INTENTED.
