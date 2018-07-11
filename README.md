@@ -21,5 +21,10 @@ Make OFFER to CUSTOMERS > CUSTOMER accept the OFFER and place an ORDER.
 ## Email-Labeling
 For every incoming email, compares the body of email with past emails in a particular label. If the email body is a duplicate, moves the new email to a separate label.
 
+## MailMerger-Multiple-Sheets
+Automatically send customized emails from data in Google Sheets. The added functionality includes sending a different customized email for different sheets in the spreadsheet.
+
+## Everyday-Data-Archiver
+Archive data for every column in the main sheet to multiple sheets with the respective column name. The data is archived every day.
 
 DISCLAIMER: SOME PART OF THE SCRIPTS MIGHT BE TAKEN FROM OTHER SOURCES AND EDITTED ACCORDING TO MY NEEDS. NO COPYRIGHTS INFRINGEMENT INTENTED.
