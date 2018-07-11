@@ -1,0 +1,45 @@
+// Custom menu to set up archive sheets
+function onOpen() {
+    SpreadsheetApp
+        .getUi()
+        .createMenu('Custom')
+        .addItem('Set Up Archive', 'archiveSetup')
+        .addToUi()
+}
+
+// Set up archive sheets
+function archiveSetup() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var src = ss.getSheetByName('output');
+  var data = src.getDataRange().getValues(); 
+  var header = data[0];
+  var header_len = header.length; 
+  var srcVals_ColA = src.getRange(1,1,src.getLastRow(),1).getValues();
+  
+  for (i = 1; i < header_len ; i++){
+    var dstName = header[i]; 
+    if(!ss.getSheetByName(dstName)){
+      ss.insertSheet(dstName);
+    }
+    var dst = ss.getSheetByName(dstName);
+    dst.getRange(1,1,srcVals_ColA.length,1).setValues(srcVals_ColA);
+  }
+}
+
+// Run on a daily trigger. Archive data from every column to a sheet with the same name and timestamp as column header.
+function archive(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var src = ss.getSheetByName('output');
+  var data = src.getDataRange().getValues(); 
+  var header = data[0];
+  var header_len = header.length;
+  
+  for(i = 1; i < header_len; i++){
+    var dstName = header[i]; 
+    var dst = ss.getSheetByName(dstName);
+    var srcCol = src.getRange(1,i+1,src.getLastRow(),1).getValues();
+    var timeStamp = Utilities.formatDate(new Date(), "CET", "MM-dd-yyyy HH:mm:ss"); 
+    srcCol[0][0] = timeStamp;
+    dst.getRange(1,dst.getLastColumn()+1,srcCol.length,1).setValues(srcCol);
+  }
+}
