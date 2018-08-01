@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<script>
+  function myFunction() {
+      document.getElementById('button1').disabled = 'disabled';
+      document.getElementById('result').innerHTML = 'Please wait! All files and folders are being deleted!';
+      google.script.run.withSuccessHandler(showData).deleteEverything();
+      return;
+    }
+    function showData(data){
+      document.getElementById("result").innerHTML = 'SUCCESS! All files/folders deleted successfully!!';
+    }
+</script>
+
+<html>
+  <head>
+    <base target="_top">
+  </head>
+  <body>
+    <button onclick='myFunction()' id='button1'>DELETE EVERYTHING</button>
+    <div id="result"></div>  
+   </body>
+</html>
