@@ -30,4 +30,9 @@ Archive data for every column in the main sheet to multiple sheets with the resp
 ## DocMerger-Multiple-Sheets
 Automatically create customized documents from data in Google Sheets. The added functionality includes creating different formats for different documents.
 
+## Delete-All-GoogleDrive
+Deployed as a Web App, Delete all files and folder from Google Drive at the click of a button.
+
+
+-------------------------------------------------------------------------------------------------------------------------
 DISCLAIMER: SOME PART OF THE SCRIPTS MIGHT BE TAKEN FROM OTHER SOURCES AND EDITTED ACCORDING TO MY NEEDS. NO COPYRIGHTS INFRINGEMENT INTENTED.
