@@ -27,4 +27,7 @@ Automatically send customized emails from data in Google Sheets. The added funct
 ## Everyday-Data-Archiver
 Archive data for every column in the main sheet to multiple sheets with the respective column name. The data is archived every day.
 
+## DocMerger-Multiple-Sheets
+Automatically create customized documents from data in Google Sheets. The added functionality includes creating different formats for different documents.
+
 DISCLAIMER: SOME PART OF THE SCRIPTS MIGHT BE TAKEN FROM OTHER SOURCES AND EDITTED ACCORDING TO MY NEEDS. NO COPYRIGHTS INFRINGEMENT INTENTED.
