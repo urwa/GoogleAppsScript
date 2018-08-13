@@ -1,225 +1,245 @@
 function onOpen() {
-    SpreadsheetApp
-        .getUi()
-        .createMenu('Custom')
-        .addItem('Send ACCEPT emails', 'sendType1Emails')
-        .addItem('Send REJECT emails', 'sendType2Emails')
-        .addToUi()
+  SpreadsheetApp
+    .getUi()
+    .createMenu('Custom')
+    .addItem('Send WELCOME emails', 'sendWelcomeEmails')
+    .addToUi()
 
 } // onOpen()
 
-function sendType1Emails() {
-    sendEmails('Type1');
+function sendWelcomeEmails() {
+  sendEmails('Welcome');
 }
 
-function sendType2Emails() {
-    sendEmails('Type2');
-}
+// Sends emails from spreadsheet rows. 
+function sendEmails(label){
 
-function getLastRow(spr) {
-    var column = spr.getRange('A:A');
-    var values = column.getValues();
-    var ct = 0;
-    while (values[ct] && values[ct][0] != "") {
-        ct++;
-    }
-    return (ct);
-}
+  // Check for remaining email quota for the day
+  var quota = MailApp.getRemainingDailyQuota(); 
+  if(quota = 0){
+      Browser.msgBox('You can not send more email today');
+      return;
+  } 
+  
+  // Check for draft message in gmail account with the correct label
+  var draft = GmailApp.search('in:draft label:'+label)[0];
+  if(!draft){
+    Browser.msgBox('ERROR: No draft found with label: ' + label + '.');
+    return;
+  }
+  
+  // Get message, body, subject and attachment
+  var message = draft.getMessages()[0];
+  var messageBody= message.getBody();
+  var messageSubj = message.getSubject();
+  var messageAtt = message.getAttachments()[0];
+  
+  // Set up the sheet for data-to-be-used
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var dataSheet = ss.getSheetByName(label);
+  //var numRows = dataSheet.getLastRow(); Logger.log(numRows);
+  var numRows = getLastRow(dataSheet); 
+  var numCols = dataSheet.getLastColumn(); 
+  var dataRange = dataSheet.getRange(2, 1, numRows - 1, numCols);
 
-// Sends emails from spreadsheet rows.
-function sendEmails(label) {
-    var quota = MailApp.getRemainingDailyQuota();
-    if (quota = 0) {
-        Browser.msgBox('You can not send more email today');
+  // Create one JavaScript object per row of data.
+  var objects = getRowsData(dataSheet, dataRange); 
+  
+  for (var i = 0; i < objects.length; ++i) {
+    // Get a row object
+    var rowData = objects[i];;
+    if(!rowData.estatus){
+      if(rowData.email == ''){
+        Browser.msgBox("ERROR: Email Address is undefined.");
         return;
-    }
-    var draft = GmailApp.search('in:draft label:' + label)[0];
-    if (!draft) {
-        Browser.msgBox('ERROR: No draft found with label: ' + label + '.');
-        return;
-    }
-    var message = draft.getMessages()[0];
-    var messageBody = message.getBody();
-    var messageSubj = message.getSubject();
-
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var dataSheet = ss.getSheetByName(label);
-    //var numRows = dataSheet.getLastRow(); Logger.log(numRows);
-    var numRows = getLastRow(dataSheet);
-    var numCols = dataSheet.getLastColumn();
-    var dataRange = dataSheet.getRange(2, 1, numRows - 1, numCols);
-
-    // Create one JavaScript object per row of data.
-    var objects = getRowsData(dataSheet, dataRange);
-
-    for (var i = 0; i < objects.length; ++i) {
-        // Get a row object
-        var rowData = objects[i];;
-        if (!rowData.estatus) {
-            if (rowData.emailAddress == '') {
-                Browser.msgBox("ERROR: Email Address is undefined.");
-                return;
-            }
-            var todayDate = Utilities.formatDate(new Date(), 'CET', 'yyyy:MM:dd');
-            var scheduledDate = todayDate;
-            if (rowData.scheduledDate != '') {
-                scheduledDate = Utilities.formatDate(rowData.scheduledDate, 'CET', 'yyyy:MM:dd');
-            }
-            // if(scheduledDate < todayDate){
-            // Browser.msgBox("ERROR: Scheduled Date is in the past. Can not send message on a past date.");
-            // return;
-            // }
-            if (scheduledDate <= todayDate) {
-                // Get file Attachment Id from row data
-                var fileId = rowData.fileAttachments;
-                var file = [];
-                if (fileId) {
-                    file = DriveApp.getFileById(fileId);
-                }
-                // Generate a personalized email.
-                // Given a template string, replace markers (for instance {{First Name}}) with
-                // the corresponding value in a row object (for instance rowData.firstName).
-                var emailText = fillInTemplateFromObject(messageBody, rowData);
-                var emailSubject = fillInTemplateFromObject(messageSubj, rowData);
-
-                MailApp.sendEmail({ to: rowData.emailAddress, subject: emailSubject, htmlBody: emailText, name: 'Johann Harnoss | Imagine', attachments: file });
-                dataSheet.getRange(i + 2, numCols).setValue("SENT");
-            }
+      }
+      var todayDate = Utilities.formatDate(new Date(), 'CET', 'yyyy:MM:dd');
+      var scheduledDate = todayDate;
+      if(rowData.scheduledDate != ''){
+        scheduledDate = Utilities.formatDate(rowData.scheduledDate, 'CET', 'yyyy:MM:dd');
+      }
+//      if(scheduledDate < todayDate){
+//        Browser.msgBox("ERROR: Scheduled Date is in the past. Can not send message on a past date.");
+//        return;
+//      }
+      if(scheduledDate <= todayDate){
+        // Get file Attachment Id from row data
+        var fileId = rowData.fileAttachments; 
+        var files = [messageAtt];
+        if(fileId){
+          var file = DriveApp.getFileById(fileId);
+          files.push(file);
         }
+        // Generate a personalized email.
+        // Given a template string, replace markers (for instance {{First Name}}) with
+        // the corresponding value in a row object (for instance rowData.firstName).
+        var emailText = fillInTemplateFromObject(messageBody, rowData);
+        var emailSubject = fillInTemplateFromObject(messageSubj, rowData);
+        var emailReplyTo = rowData.contact + '@company.com';
+
+        MailApp.sendEmail({to:rowData.email,
+                           replyTo: emailReplyTo,
+                           subject:emailSubject, 
+                           htmlBody: emailText,
+                           cc: emailReplyTo,
+                           name:'owner-name | company-name', 
+                           attachments: files});
+        
+        dataSheet.getRange(i+2,numCols).setValue("SENT");     
+      }
     }
+  }
 }
 
 /**
-
-
-Replaces markers in a template string with values define in a JavaScript data object.
-@param {string} template Contains markers, for instance {{Column name}}
-@param {object} data values to that will replace markers.
-For instance data.columnName will replace marker {{Column name}}
-@return {string} A string without markers. If no data is found to replace a marker,
-it is simply removed.
-*/
+ * Replaces markers in a template string with values define in a JavaScript data object.
+ * @param {string} template Contains markers, for instance {{Column name}}
+ * @param {object} data values to that will replace markers.
+ *   For instance data.columnName will replace marker {{Column name}}
+ * @return {string} A string without markers. If no data is found to replace a marker,
+ *   it is simply removed.
+ */
 function fillInTemplateFromObject(template, data) {
-    var email = template;
-    // Search for all the variables to be replaced, for instance {{Column name}}
-    var templateVars = template.match(/{{[^{}]+}}/g);
-
-    if (templateVars) {
-        // Replace variables from the template with the actual values from the data object.
-        // If no value is available, replace with the empty string.
-
-        for (var i = 0; i < templateVars.length; ++i) {
-            // normalizeHeader ignores {{}} so we can call it directly here.
-            var variableData = data[normalizeHeader(templateVars[i])];
-            email = email.replace(templateVars[i], variableData || '');
-        }
+  var email = template; 
+  // Search for all the variables to be replaced, for instance {{Column name}}
+  var templateVars = template.match(/\{\{[^{}]+\}\}/g); 
+  
+  if(templateVars){
+    // Replace variables from the template with the actual values from the data object.
+    // If no value is available, replace with the empty string.
+ 
+    for (var i = 0; i < templateVars.length; ++i) {
+      // normalizeHeader ignores {{}} so we can call it directly here.
+      var variableData = data[normalizeHeader(templateVars[i])];
+      // checks for {{link}} variable and replace it with hyperlink + text
+      if(templateVars[i] == '{{link}}'){
+        // create calendly link
+        var calendyLink = "https://calendly.com/companyName-" + data.contact + "/25min";
+        email = email.replace(templateVars[i], "<a href='" + calendyLink + "'>"+ variableData +"</a>" || '');
+      }
+      else { // else simply replaces with text
+        email = email.replace(templateVars[i], variableData || '');
+      }
     }
-    return email;
+  }
+  return email;
 }
+
+// get Last Row with data
+function getLastRow(spr) {
+  var column = spr.getRange('A:A');
+  var values = column.getValues(); 
+  var ct = 0;
+  while ( values[ct] && values[ct][0] != "" ) {
+    ct++;
+  }
+  return (ct);
+}
+
 // getRowsData iterates row by row in the input range and returns an array of objects.
 // Each object contains all the data for a given row, indexed by its normalized column name.
 // Arguments:
-// - sheet: the sheet object that contains the data to be processed
-// - range: the exact range of cells where the data is stored
-// - columnHeadersRowIndex: specifies the row number where the column names are stored.
-// This argument is optional and it defaults to the row immediately above range;
+//   - sheet: the sheet object that contains the data to be processed
+//   - range: the exact range of cells where the data is stored
+//   - columnHeadersRowIndex: specifies the row number where the column names are stored.
+//       This argument is optional and it defaults to the row immediately above range;
 // Returns an Array of objects.
 function getRowsData(sheet, range, columnHeadersRowIndex) {
-    columnHeadersRowIndex = columnHeadersRowIndex || range.getRowIndex() - 1;
-    var numColumns = range.getEndColumn() - range.getColumn() + 1;
-    var headersRange = sheet.getRange(columnHeadersRowIndex, range.getColumn(), 1, numColumns);
-    var headers = headersRange.getValues()[0];
-    return getObjects(range.getValues(), normalizeHeaders(headers));
+  columnHeadersRowIndex = columnHeadersRowIndex || range.getRowIndex() - 1;
+  var numColumns = range.getEndColumn() - range.getColumn() + 1;
+  var headersRange = sheet.getRange(columnHeadersRowIndex, range.getColumn(), 1, numColumns);
+  var headers = headersRange.getValues()[0];
+  return getObjects(range.getValues(), normalizeHeaders(headers));
 }
 
 // For every row of data in data, generates an object that contains the data. Names of
 // object fields are defined in keys.
 // Arguments:
-// - data: JavaScript 2d array
-// - keys: Array of Strings that define the property names for the objects to create
+//   - data: JavaScript 2d array
+//   - keys: Array of Strings that define the property names for the objects to create
 function getObjects(data, keys) {
-    var objects = [];
-    for (var i = 0; i < data.length; ++i) {
-        var object = {};
-        var hasData = false;
-        for (var j = 0; j < data[i].length; ++j) {
-            var cellData = data[i][j];
-            // if (isCellEmpty(cellData)) {
-            // continue;
-            // }
-            object[keys[j]] = cellData;
-            hasData = true;
-        }
-        if (hasData) {
-            objects.push(object);
-        }
+  var objects = [];
+  for (var i = 0; i < data.length; ++i) {
+    var object = {};
+    var hasData = false;
+    for (var j = 0; j < data[i].length; ++j) {
+      var cellData = data[i][j];
+//      if (isCellEmpty(cellData)) {
+//        continue;
+//      }
+      object[keys[j]] = cellData;
+      hasData = true;
     }
-    return objects;
+    if (hasData) {
+      objects.push(object);
+    }
+  }
+  return objects;
 }
 
 // Returns an Array of normalized Strings.
 // Arguments:
-// - headers: Array of Strings to normalize
+//   - headers: Array of Strings to normalize
 function normalizeHeaders(headers) {
-    var keys = [];
-    for (var i = 0; i < headers.length; ++i) {
-        var key = normalizeHeader(headers[i]);
-        if (key.length > 0) {
-            keys.push(key);
-        }
+  var keys = [];
+  for (var i = 0; i < headers.length; ++i) {
+    var key = normalizeHeader(headers[i]);
+    if (key.length > 0) {
+      keys.push(key);
     }
-    return keys;
+  }
+  return keys;
 }
 
 // Normalizes a string, by removing all alphanumeric characters and using mixed case
 // to separate words. The output will always start with a lower case letter.
 // This function is designed to produce JavaScript object property names.
 // Arguments:
-// - header: string to normalize
+//   - header: string to normalize
 // Examples:
-// "First Name" -> "firstName"
-// "Market Cap (millions) -> "marketCapMillions
-// "1 number at the beginning is ignored" -> "numberAtTheBeginningIsIgnored"
+//   "First Name" -> "firstName"
+//   "Market Cap (millions) -> "marketCapMillions
+//   "1 number at the beginning is ignored" -> "numberAtTheBeginningIsIgnored"
 function normalizeHeader(header) {
-    var key = "";
-    var upperCase = false;
-    for (var i = 0; i < header.length; ++i) {
-        var letter = header[i];
-        if (letter == " " && key.length > 0) {
-            upperCase = true;
-            continue;
-        }
-        if (!isAlnum(letter)) {
-            continue;
-        }
-        if (key.length == 0 && isDigit(letter)) {
-            continue; // first character must be a letter
-        }
-        if (upperCase) {
-            upperCase = false;
-            key += letter.toUpperCase();
-        } else {
-            key += letter.toLowerCase();
-        }
+  var key = "";
+  var upperCase = false;
+  for (var i = 0; i < header.length; ++i) {
+    var letter = header[i];
+    if (letter == " " && key.length > 0) {
+      upperCase = true;
+      continue;
     }
-    return key;
+    if (!isAlnum(letter)) {
+      continue;
+    }
+    if (key.length == 0 && isDigit(letter)) {
+      continue; // first character must be a letter
+    }
+    if (upperCase) {
+      upperCase = false;
+      key += letter.toUpperCase();
+    } else {
+      key += letter.toLowerCase();
+    }
+  }
+  return key;
 }
 
 // Returns true if the cell where cellData was read from is empty.
 // Arguments:
-// - cellData: string
+//   - cellData: string
 function isCellEmpty(cellData) {
-    return typeof (cellData) == "string" && cellData == "";
+  return typeof(cellData) == "string" && cellData == "";
 }
 
 // Returns true if the character char is alphabetical, false otherwise.
 function isAlnum(char) {
-    return char >= 'A' && char <= 'Z' ||
-        char >= 'a' && char <= 'z' ||
-        isDigit(char);
+  return char >= 'A' && char <= 'Z' ||
+    char >= 'a' && char <= 'z' ||
+    isDigit(char);
 }
 
 // Returns true if the character char is a digit, false otherwise.
 function isDigit(char) {
-    return char >= '0' && char <= '9';
+  return char >= '0' && char <= '9';
 }
