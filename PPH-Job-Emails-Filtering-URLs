@@ -1,0 +1,58 @@
+function onOpen() {
+    SpreadsheetApp
+        .getUi()
+        .createMenu('Custom')
+        .addItem('Update Job URLs', 'updateUrls')
+        .addToUi()
+}
+
+var ss = SpreadsheetApp.getActiveSpreadsheet();
+var sheet = ss.getSheetByName('PPHjobs');
+ 
+function updateUrls(){
+  getJobUrls();
+  removeDuplicates();
+}
+
+function getJobUrls() {
+  var lastRow = sheet.getLastRow();Logger.log(lastRow);
+  
+  var SEARCH_QUERY = "from:(YOUR_GMAIL_ID)";
+  var threads = GmailApp.search(SEARCH_QUERY); 
+  threads.forEach(function (thread) {
+    thread.getMessages().forEach(function (message) {
+      
+      var date = message.getDate();      
+      var body = message.getPlainBody();
+      var jobLinks = body.match(/http:%2F.*\d{7}%3F/g);
+      jobLinks.forEach(function (jobLink) {
+        var jobLinkCleaned = jobLink.replace(/%2F/g,'/').replace(/%3F/g,'/');
+        sheet.getRange(lastRow+1, 1, 1, 1).setValue(date);
+        sheet.getRange(lastRow+1, 2, 1, 1).setValue(jobLinkCleaned);
+        sheet.getRange(lastRow+1, 3, 1, 1).setValue(jobLink);
+        lastRow++;
+      })
+    })
+  })  
+}
+
+
+function removeDuplicates() {
+  var data = sheet.getDataRange().getValues();
+  var newData = new Array();
+  for(i in data){
+    var row = data[i];
+    var duplicate = false;
+    for(j in newData){
+      if(row.join() == newData[j].join()){
+        duplicate = true;
+      }
+    }
+    if(!duplicate){
+      newData.push(row);
+    }
+  }
+  sheet.clearContents();
+  sheet.getRange(1, 1, newData.length, newData[0].length)
+      .setValues(newData);
+}
