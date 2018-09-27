@@ -33,6 +33,11 @@ Automatically create customized documents from data in Google Sheets. The added 
 ## Delete-All-GoogleDrive
 Deployed as a Web App, Delete all files and folder from Google Drive at the click of a button.
 
+## SMSMerger-Multiple-Sheets-46elks
+Automatically send customized SMS from data in Google Sheet using 46elks API.
+
+## PPH-Job-Emails-Filtering-URLs
+Filters emails from PPH and get job links from the PPH recommendations, clean those links and save thems in a google sheet.
 
 -------------------------------------------------------------------------------------------------------------------------
 DISCLAIMER: SOME PART OF THE SCRIPTS MIGHT BE TAKEN FROM OTHER SOURCES AND EDITTED ACCORDING TO MY NEEDS. NO COPYRIGHTS INFRINGEMENT INTENTED.
