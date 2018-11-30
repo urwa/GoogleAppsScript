@@ -39,5 +39,8 @@ Automatically send customized SMS from data in Google Sheet using 46elks API.
 ## PPH-Job-Emails-Filtering-URLs
 Filters emails from PPH and get job links from the PPH recommendations, clean those links and save thems in a google sheet.
 
+## Google-Calendar-Import-And-Filter
+Imports events from google calendar between specific data and having specific word, one row per guest. For same guest, divides the first and second meetings in to two separate sheets.
+
 -------------------------------------------------------------------------------------------------------------------------
 DISCLAIMER: SOME PART OF THE SCRIPTS MIGHT BE TAKEN FROM OTHER SOURCES AND EDITTED ACCORDING TO MY NEEDS. NO COPYRIGHTS INFRINGEMENT INTENTED.
