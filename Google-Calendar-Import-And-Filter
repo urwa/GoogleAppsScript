@@ -1,0 +1,162 @@
+var emailId = "YOUR_EMAIL_ADDRESS";
+var keyWord = "Meeting";
+
+function onOpen() {
+  SpreadsheetApp
+    .getUi()
+    .createMenu('Custom')
+    .addItem('Setup Calendar', 'calendarHandler')
+    .addToUi()
+}
+
+function calendarHandler(){
+  getCal();
+  divideCal();
+}
+
+var header = [["Calendar Address", 
+               "Participant",
+               "Event Title", 
+                "Event Description", 
+                "Event Location", 
+                "Event Start", 
+                "Event End",
+                "Visibility", 
+                "Date Created", 
+                "Last Updated", 
+                "My Status", 
+                "Created By", 
+                "All Day Event", 
+                "Recurring Event", 
+                "ID",
+                "Guest Status",
+                "Name",
+                "Owner Status"
+              ]];
+
+function getOwnerStatus(event, mycal){
+  var guestList = event.getGuestList(true);
+  var ownerStatus = '';
+  for(var i = 0; i < guestList.length; i++){
+    if(guestList[i].getEmail() == mycal){
+       ownerStatus = guestList[i].getGuestStatus();
+    }
+  }
+  return (ownerStatus);
+}
+
+function getCal() {
+  var mycal = emailId;
+  var cal = CalendarApp.getCalendarById(mycal);
+  
+  var events = cal.getEvents(new Date("October 29, 2018 00:00:00 CST"), new Date("July 18, 2020 23:59:59 CST"), {search: keyWord});
+  
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("All_Calendar_Data");
+  
+  if(!sheet){
+    ss.insertSheet("All_Calendar_Data");
+    var sheet = ss.getActiveSheet();
+  }
+  sheet.clearContents();
+  
+  var rangeLength = header[0].length;
+  sheet.getRange(1,1,1,rangeLength).setValues(header);
+  
+  var row = 2;
+
+  for (var i = 0; i < events.length; i++){
+    var guestList = events[i].getGuestList();
+    var eventTitle = events[i].getTitle();
+    var ownerStatus = getOwnerStatus(events[i], mycal);
+    
+    if(eventTitle.indexOf("Cancel") <= -1) {
+       for(var d = 0; guestList != null && d < guestList.length; d++) {
+          var details =  [[mycal, 
+                      guestList[d].getEmail(), 
+                      events[i].getTitle(), 
+                      events[i].getDescription(), 
+                      events[i].getLocation(), 
+                      events[i].getStartTime(), 
+                      events[i].getEndTime(), 
+                      events[i].getVisibility(), 
+                      events[i].getDateCreated(), 
+                      events[i].getLastUpdated(), 
+                      events[i].getMyStatus(), 
+                      events[i].getCreators(), 
+                      events[i].isAllDayEvent(), 
+                      events[i].isRecurringEvent(), 
+                      events[i].getId(), 
+                      guestList[d].getGuestStatus(), 
+                      guestList[d].getName(),
+                      ownerStatus]];
+      
+         var range = sheet.getRange(row + d,1,1,rangeLength);
+         range.setValues(details); 
+      }
+      row = row + d;
+    }
+  }
+}
+
+function divideCal(){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("All_Calendar_Data");
+
+  var numRows = sheet.getLastRow(); Logger.log(numRows);
+  var numCols = sheet.getLastColumn(); Logger.log(numCols);
+  var dataRange = sheet.getRange(2, 1, numRows - 1, numCols);
+  var rawData = dataRange.getValues();
+  
+  var data = [];
+  for (var i = 0; i < rawData.length ; i++){
+     if(rawData[i][15] != "NO" && rawData[i][17] != "NO"){
+        data.push(rawData[i]);
+     }
+  }
+  
+  var first_meetings = [];
+  var second_meetings = [];
+  
+  for (i in data) {
+    var row = data[i];
+    var duplicate = false;
+    for (j in first_meetings) {
+      if (row[1] == first_meetings[j][1]) {
+        duplicate = true;
+      }
+    }
+    if (!duplicate) {
+      first_meetings.push(row);
+    }
+    else {
+      second_meetings.push(row);
+    }
+  }
+  
+  var first_meetings_sheet = ss.getSheetByName("first_meetings");
+  var second_meetings_sheet = ss.getSheetByName("second_meetings");
+  
+  if(!first_meetings_sheet){
+    ss.insertSheet("first_meetings");
+    var first_meetings_sheet = ss.getActiveSheet();
+  }
+  
+  if(!second_meetings_sheet){
+    ss.insertSheet("second_meetings");
+    var second_meetings_sheet = ss.getActiveSheet();
+  }
+  
+  first_meetings_sheet.clearContents();
+  second_meetings_sheet.clearContents();
+  
+  first_meetings_sheet.getRange(1,1,1,header[0].length).setValues(header);
+  second_meetings_sheet.getRange(1,1,1,header[0].length).setValues(header);
+  
+  if(first_meetings.length != 0){
+     first_meetings_sheet.getRange(2, 1, first_meetings.length, first_meetings[0].length).setValues(first_meetings);  
+  }
+  if(second_meetings.length != 0){
+     second_meetings_sheet.getRange(2, 1, second_meetings.length, second_meetings[0].length).setValues(second_meetings);
+  }
+}
