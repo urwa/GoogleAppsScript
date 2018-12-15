@@ -1,0 +1,37 @@
+function onOpen() {
+    SlidesApp
+        .getUi()
+        .createMenu('Custom')
+        .addItem('Create Images', 'createImages')
+        .addToUi()
+}
+
+function createImages() {
+  var ss = SpreadsheetApp.openById("YOUR_SPREADSHEET_ID");
+  var sheet = ss.getSheetByName("YOUR_SHEET_NAME");
+  
+  var presentation = SlidesApp.getActivePresentation();
+  var presentationId = presentation.getId();
+  var slides = presentation.getSlides();
+  
+  var userSlidesStr = SlidesApp.getUi().prompt("Enter slides you would like to convert [seperated by comma]").getResponseText();
+  var userSlides = JSON.parse("[" + userSlidesStr + "]");
+  
+  slides.forEach(function(slide, i) {
+    if(userSlides.indexOf(i+1) != -1) { 
+       var thumbnail = Slides.Presentations.Pages.getThumbnail(presentationId, slide.getObjectId(), {'thumbnailProperties.thumbnailSize': 'LARGE'});
+       var response = UrlFetchApp.fetch(thumbnail.contentUrl);
+       var blob = response.getBlob();
+       blob.setName('candidate.png');
+       
+       var slideNote = Slides.Presentations.Pages.get(presentationId, slide.getObjectId());
+       var emailId = JSON.parse(slideNote).slideProperties.notesPage.pageElements[1].shape.text.textElements[1].textRun.content.replace(/\n/g, '');
+       
+       var folder = DriveApp.getFolderById('FOLDER_ID_TO_SAVE_IMAGES');
+       var file = folder.createFile(blob);
+       var time = new Date();
+       var fileId = file.getId(); 
+       sheet.appendRow([time, emailId, fileId]); 
+    }
+  });
+}
