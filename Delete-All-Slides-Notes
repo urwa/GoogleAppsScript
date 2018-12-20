@@ -1,0 +1,16 @@
+function clearNotes(){
+    var presentation = SlidesApp.getActivePresentation();
+    var presentationId = presentation.getId();
+    var slides = presentation.getSlides();
+   
+    var requests = [];
+   
+    slides.forEach(function(slide, i) {
+        var slideNote = Slides.Presentations.Pages.get(presentationId, slide.getObjectId());
+        var slideNoteId = JSON.parse(slideNote).slideProperties.notesPage.notesProperties.speakerNotesObjectId;
+        requests.push({
+        deleteText: {objectId: slideNoteId,textRange:{type: 'ALL'}}
+        });
+   })
+   var batchUpdateResponse = Slides.Presentations.batchUpdate({requests: requests}, presentationId);
+}
