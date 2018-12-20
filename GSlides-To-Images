@@ -4,11 +4,12 @@ function onOpen() {
         .createMenu('Custom')
         .addItem('Create Images', 'createImages')
         .addToUi()
+
 }
 
 function createImages() {
-  var ss = SpreadsheetApp.openById("YOUR_SPREADSHEET_ID");
-  var sheet = ss.getSheetByName("YOUR_SHEET_NAME");
+  var ss = SpreadsheetApp.openById("YOUR_SHEET_ID");
+  var sheet = ss.getSheetByName("Sheet1");
   
   var presentation = SlidesApp.getActivePresentation();
   var presentationId = presentation.getId();
@@ -16,6 +17,7 @@ function createImages() {
   
   var userSlidesStr = SlidesApp.getUi().prompt("Enter slides you would like to convert [seperated by comma]").getResponseText();
   var userSlides = JSON.parse("[" + userSlidesStr + "]");
+  var requests = [];
   
   slides.forEach(function(slide, i) {
     if(userSlides.indexOf(i+1) != -1) { 
@@ -25,13 +27,26 @@ function createImages() {
        blob.setName('candidate.png');
        
        var slideNote = Slides.Presentations.Pages.get(presentationId, slide.getObjectId());
-       var emailId = JSON.parse(slideNote).slideProperties.notesPage.pageElements[1].shape.text.textElements[1].textRun.content.replace(/\n/g, '');
+       var slideNoteId = JSON.parse(slideNote).slideProperties.notesPage.notesProperties.speakerNotesObjectId;
+  
+       var shapeText = JSON.parse(slideNote).slideProperties.notesPage.pageElements[1].shape.text;
        
-       var folder = DriveApp.getFolderById('FOLDER_ID_TO_SAVE_IMAGES');
+       if(shapeText != undefined){
+         var notesText = shapeText.textElements[1].textRun.content.replace(/\n/g, '').trim();
+         requests.push({
+            deleteText: {objectId: slideNoteId,textRange:{type: 'ALL'}}
+         });
+       }   
+      
+       var folder = DriveApp.getFolderById('YOUR_FOLDER_ID');
        var file = folder.createFile(blob);
        var time = new Date();
-       var fileId = file.getId(); 
-       sheet.appendRow([time, emailId, fileId]); 
+       var fileId = file.getId();
+       sheet.appendRow([time, notesText, fileId]); 
     }
   });
+  
+  if(requests.length > 0){
+    var batchUpdateResponse = Slides.Presentations.batchUpdate({requests: requests}, presentationId);
+  }
 }
