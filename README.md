@@ -45,5 +45,9 @@ Imports events from google calendar between specific data and having specific wo
 ## GSlides-To-Images
 Convert user-selected slides into images, save them a drive folder. Then log time of creation, text from notes section and image file link to a spreadsheet.
 
+## Delete-All-Slides-Notes
+Delete notes from all slides in a presentation.
+
+
 -------------------------------------------------------------------------------------------------------------------------
 DISCLAIMER: SOME PART OF THE SCRIPTS MIGHT BE TAKEN FROM OTHER SOURCES AND EDITTED ACCORDING TO MY NEEDS. NO COPYRIGHTS INFRINGEMENT INTENTED.
