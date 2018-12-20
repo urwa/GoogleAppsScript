@@ -1,16 +1,25 @@
 function clearNotes(){
-    var presentation = SlidesApp.getActivePresentation();
-    var presentationId = presentation.getId();
-    var slides = presentation.getSlides();
-   
-    var requests = [];
-   
-    slides.forEach(function(slide, i) {
-        var slideNote = Slides.Presentations.Pages.get(presentationId, slide.getObjectId());
-        var slideNoteId = JSON.parse(slideNote).slideProperties.notesPage.notesProperties.speakerNotesObjectId;
-        requests.push({
-        deleteText: {objectId: slideNoteId,textRange:{type: 'ALL'}}
-        });
-   })
-   var batchUpdateResponse = Slides.Presentations.batchUpdate({requests: requests}, presentationId);
+  var presentation = SlidesApp.getActivePresentation();
+  var presentationId = presentation.getId();
+  var slides = presentation.getSlides();
+  
+  var requests = [];
+  
+  slides.forEach(function(slide, i) {
+    var slideNote = Slides.Presentations.Pages.get(presentationId, slide.getObjectId()); 
+    var slideNoteId = JSON.parse(slideNote).slideProperties.notesPage.notesProperties.speakerNotesObjectId;
+  
+    var slideNotesPage = JSON.parse(slideNote).slideProperties.notesPage;
+    var shapeText = slideNotesPage.pageElements[1].shape.text;
+    
+    if(shapeText != undefined){
+      requests.push({
+         deleteText: {objectId: slideNoteId,textRange:{type: 'ALL'}}
+      });
+    }
+  })
+  
+  if(requests.length > 0){
+     var batchUpdateResponse = Slides.Presentations.batchUpdate({requests: requests}, presentationId);
+  }
 }
