@@ -19,6 +19,10 @@ function createImages() {
   var userSlides = JSON.parse("[" + userSlidesStr + "]");
   var requests = [];
   
+  if(!validateNotes(presentationId, slides, userSlides)){
+    return;
+  }
+  
   slides.forEach(function(slide, i) {
     if(userSlides.indexOf(i+1) != -1) { 
        var thumbnail = Slides.Presentations.Pages.getThumbnail(presentationId, slide.getObjectId(), {'thumbnailProperties.thumbnailSize': 'LARGE'});
@@ -49,4 +53,26 @@ function createImages() {
   if(requests.length > 0){
     var batchUpdateResponse = Slides.Presentations.batchUpdate({requests: requests}, presentationId);
   }
+}
+
+function validateNotes(presentationId, slides, userSlides){
+
+  var result = true;
+  var slideNo = '';
+  
+  slides.forEach(function(slide, i) {
+    if(userSlides.indexOf(i + 1) != -1) {
+      var slideNote = Slides.Presentations.Pages.get(presentationId, slide.getObjectId());
+      var shapeText = JSON.parse(slideNote).slideProperties.notesPage.pageElements[1].shape.text;
+       
+      if(shapeText == undefined){
+        slideNo = i + 1;
+        result = false;
+      }
+    }
+  });
+  if(slideNo != ''){
+    SlidesApp.getUi().alert("Notes text is missing for Slide # " + slideNo + '.\n' + 'Aborting Process');
+  }
+  return result; 
 }
