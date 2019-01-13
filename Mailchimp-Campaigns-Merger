@@ -6,7 +6,6 @@ function onOpen() {
         .getUi()
         .createMenu('Custom')
         .addItem('Run Campaigns', 'handler')
-        .addItem('Run Analysis', 'clickAnalysis')
         .addToUi()
 }
 
