@@ -1,0 +1,255 @@
+var API_KEY = 'YOUR_API_KEY';
+var TEMPLATE_ID = YOUR_TEMPLATE_ID;
+
+function onOpen() {
+    SpreadsheetApp
+        .getUi()
+        .createMenu('Custom')
+        .addItem('Run Campaigns', 'handler')
+        .addItem('Run Analysis', 'clickAnalysis')
+        .addToUi()
+}
+
+function handler(){
+  
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var dataSheet = ss.getSheetByName('Campaign Data');
+  var numRows = getLastRow(dataSheet);
+  var numCols = dataSheet.getLastColumn();
+  var dataRange = dataSheet.getRange(2, 1, numRows - 1, numCols);
+  
+  var objects = getRowsData(dataSheet, dataRange);
+  
+  for (var i = 0; i < objects.length; ++i) {
+    
+    var rowData = objects[i];
+    
+    if(!rowData.estatus){
+      
+      var campaignTitle = rowData.campaignTitle; 
+      var campaignSubject = rowData.campaignSubject;
+      var campaignPreview = rowData.campaignPreview;
+      var campaignList = rowData.campaignList;
+      
+      var todayDate = Utilities.formatDate(new Date(), 'CET', 'yyyy:MM:dd');
+      var scheduledDate = todayDate;
+      
+      if(rowData.scheduleDate != ''){
+        scheduledDate = Utilities.formatDate(rowData.scheduleDate, 'CET', 'yyyy:MM:dd');
+      }
+      
+      if(scheduledDate == todayDate){
+        
+        var newCampaign = createRegularCampaign(campaignList, campaignTitle, campaignSubject, campaignPreview, TEMPLATE_ID);
+        Utilities.sleep(100);
+        
+        var campaign_id = newCampaign.id;
+        
+        var introtext = rowData.introtext;
+        var blocksCount = rowData.blocksCount;
+        
+        var blockButtons = [rowData.block1button, rowData.block2button, rowData.block3button, rowData.block4button, rowData.block5button,
+                              rowData.block6button, rowData.block7button, rowData.block8button, rowData.block9button];
+        var blockImages = [rowData.block1image, rowData.block2image, rowData.block3image, rowData.block4image, rowData.block5image,
+                             rowData.block6image, rowData.block7image, rowData.block8image, rowData.block9image]
+        
+        updateRegularCampaign(campaign_id, TEMPLATE_ID, introtext, blocksCount, blockButtons, blockImages);
+        Utilities.sleep(100);
+        
+        sendRegularCampaign(campaign_id);
+        Utilities.sleep(100);
+        
+        dataSheet.getRange(i + 2, numCols).setValue("SENT");
+      }
+    }
+  }
+}
+
+function callMailchimpClient(method, endpoint, data){
+  
+  var root = 'https://us19.api.mailchimp.com/3.0/';
+  
+  var params = {
+    'method': method,
+    'muteHttpExceptions': true,
+    'headers': {
+      'contentType': 'application/json',
+      'Authorization': 'apikey ' + API_KEY
+     },
+    'payload': JSON.stringify(data)
+  };
+  
+  try{
+    var response = UrlFetchApp.fetch(root + endpoint, params);
+    var json = JSON.parse(response);
+    return (json);
+  }
+  catch(error){
+    Logger.log(error);
+  }
+}
+
+function createRegularCampaign(recipientListId, title, subjectLine, previewText, templateId){
+  
+  var endpoint = 'campaigns';  
+  
+  var data = {
+              'recipients': {
+                             'list_id': recipientListId
+                            },
+              'type':'regular',
+              'settings': {
+                           'title': title,
+                           'subject_line': subjectLine,
+                           'template_id': templateId,
+                           'preview_text': previewText, 
+                           'reply_to': 'johann@joinimagine.org',
+                           'from_name': 'Johann Harnoss',
+                           'to_name': '*|FNAME|*'
+                          }
+             };
+  var method = 'POST';
+  var json = callMailchimpClient(method, endpoint, data);
+  return (json);
+}
+
+function updateRegularCampaign(campaign_id, template_id, introtext, blocksCount, blockButtons, blockImages){
+  
+  var endpoint = 'campaigns/' + campaign_id + '/content'; 
+  
+  var data = {
+    'template': {
+                 'id': template_id,
+                 'sections': {
+                              'editintrotext': introtext,
+                              'editblock': createBlocks(blocksCount, blockButtons, blockImages)
+                             }
+                }
+             };
+  var method = 'PUT';
+  var json = callMailchimpClient(method, endpoint, data);
+  return (json); 
+}
+
+function sendRegularCampaign(campaign_id){
+  
+  var root = 'https://us19.api.mailchimp.com/3.0/';
+  var endpoint = 'campaigns/' + campaign_id + '/actions/send';
+  
+  var method = 'POST';
+  
+  var params = {
+    'method': method,
+    'muteHttpExceptions': true,
+    'headers': {
+      'contentType': 'application/json',
+      'Authorization': 'apikey ' + API_KEY
+     }
+  };
+  Logger.log(UrlFetchApp.getRequest(root + endpoint, params));
+  
+  try{
+    var response = UrlFetchApp.fetch(root + endpoint, params);
+    Logger.log(response);
+    return (response);
+  }
+  catch(error){
+    Logger.log(error);
+  }
+}
+
+//function scheduleRegularCampaign(campaign_id){
+//  
+//  var root = 'https://us19.api.mailchimp.com/3.0/';
+//  var endpoint = 'campaigns/' + campaign_id + '/actions/schedule';
+//  
+//  var method = 'POST';
+//  
+//  var params = {
+//    'method': method,
+//    'muteHttpExceptions': true,
+//    'headers': {
+//      'contentType': 'application/json',
+//      'Authorization': 'apikey ' + API_KEY
+//     }
+//  };
+//  Logger.log(UrlFetchApp.getRequest(root + endpoint, params));
+//  
+//  try{
+//    var response = UrlFetchApp.fetch(root + endpoint, params);
+//    Logger.log(response);
+//    return (response);
+//  }
+//  catch(error){
+//    Logger.log(error);
+//  }
+//}
+
+function updatedBlock(blockButton, blockImage){
+  var blockHtml = 
+
+'<tbody class="mcnDividerBlockOuter">'+
+'<tr>'+
+'<td class="mcnDividerBlockInner" style="min-width:100%;padding:18px;">'+
+'<table class="mcnDividerContent" border="0" cellpadding="0" cellspacing="0" width="100%" style="min-width:100%;border-top:2px solid #EAEAEA;">'+
+'<tbody>'+
+'<tr>'+
+'<td>'+
+'<span></span>'+
+'</td>'+
+'</tr>'+
+'</tbody>'+
+'</table>'+
+'<!--'+
+'<td class="mcnDividerBlockInner" style="padding:18px;">'+
+'<hr class="mcnDividerContent" style="border-bottom-width:0;border-left-width:0;border-right-width:0;margin-top:0;margin-right:0;margin-bottom:0;margin-left:0;" />'+
+'-->'+
+'</td>'+
+'</tr>'+
+'</tbody>'+      
+'<tbody class="mcnImageBlockOuter">'+
+'<tr>'+
+'<td align="top" style="padding:9px;" class="mcnImageBlockInner">'+
+'<table align="left" width="100%" border="0" cellpadding="0" cellspacing="0" class="mcnImageContentContainer" style="min-width:100%;">'+
+'<tbody>'+
+'<tr>'+
+'<td class="mcnImageContent" valign="top" style="padding-right:9px;padding-left:9px;padding-top:0;padding-bottom:0;text-align:center;">'+
+'<img alt="Please allow images for this email [at the top]" src="' + 
+blockImage + 
+'" width="564" style="max-width:564px; padding-bottom: 0; display: inline !important; vertical-align: bottom;" class="mcnImage">'+
+'</td>'+
+'</tr>'+
+'</tbody>'+
+'</table>'+
+'</td>'+
+'</tr>'+
+'</tbody>'+
+'<tbody class="mcnButtonBlockOuter">'+
+'<tr>'+
+'<td style="padding-top:0;padding-right:18px;padding-bottom:18px;padding-left:18px;" valign="top" align="right" class="mcnButtonBlockInner">'+
+'<table border="0" cellpadding="0" cellspacing="0" class="mcnButtonContentContainer" style="border-collapse:separate !important;border-radius:36px;background-color:#E0296C;">'+
+'<tbody>'+
+'<tr>'+
+'<td align="center" valign="middle" class="mcnButtonContent" style="font-family:Arial;font-size:12px;padding:15px;">'+
+'<a class="mcnButton" title="Button Text" href="' + 
+blockButton + 
+'" target="_blank" style="font-weight:bold;letter-spacing:normal;line-height:100%;text-align:center;text-decoration:none;color:#FFFFFF;">Button Text</a>'+
+'</td>'+
+'</tr>'+
+'</tbody>'+
+'</table>'+
+'</td>'+
+'</tr>'+
+'</tbody>';
+  return (blockHtml);
+}
+
+function createBlocks(blocksCount, blockButtons, blockImages){
+  var finalBlock = '';
+  var blockHtml;
+  for(var i = 0; i < blocksCount; i++){
+    blockHtml = updatedBlock(blockButtons[i], blockImages[i])
+    finalBlock = finalBlock + blockHtml;
+  }
+  return (finalBlock);
+}
