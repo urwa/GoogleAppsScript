@@ -1,0 +1,67 @@
+function apiCall(endpoint){
+  var root = 'https://usXX.api.mailchimp.com/3.0/';
+  var query = '?count=500';
+  
+  var params = {
+    'method': 'GET',
+    'muteHttpExceptions': true,
+    'headers': {
+      'Authorization': 'apikey ' + API_KEY
+    }
+  };
+  
+  var response = UrlFetchApp.fetch(root + endpoint + query, params);
+  var data = response.getContentText();
+  var json = JSON.parse(data);
+  
+  return (json);
+}
+
+function clickAnalysis(){
+  
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('Campaign Analysis');
+  sheet.clear();
+  sheet.getRange(1,1,1,7).setValues([['Campaign Id', 'Campaign Name', 'Link','First Name','Second Name','Email Address', 'Time Of Click']]);  
+  
+  
+  try {
+    var jsonLists = apiCall('lists/');
+    var lists = jsonLists.lists;
+    
+    lists.forEach(function(list, i){
+      
+      var listId = list.id;
+      var jsonMembers = apiCall('lists/' + listId + '/members');
+      var members = jsonMembers.members;
+      
+      members.forEach(function(member,j){
+        
+        var memberId = member.id;
+        var jsonActivity = apiCall('lists/' + listId + '/members/' + memberId + '/activity');
+        var activities = jsonActivity.activity;
+        
+        activities.forEach(function(activity,k){
+          
+          var action = activity.action;
+          var url = activity.url;
+          if(action == 'click' && url.toString().match(/https:\/\/LINK_URL\/.*/g)){
+            var time = activity.timestamp;
+            var campaignId = activity.campaign_id;
+            var campaignTitle = activity.title;
+            var linkUrl = activity.url;
+            var fName = member.merge_fields.FNAME;
+            var lName = member.merge_fields.LNAME;
+            var emailId = member.email_address;
+            
+            sheet.appendRow([campaignId, campaignTitle, linkUrl, fName, lName, emailId, new Date(time)]);
+          }
+        })
+      })
+    })
+    sheet.getRange(2, 1, sheet.getLastRow(), sheet.getLastColumn()).sort(7);
+  }
+  catch (error) {
+    Logger.log(error);
+  };
+}
