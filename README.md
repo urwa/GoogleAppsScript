@@ -51,5 +51,8 @@ Delete notes from all slides in a presentation.
 ## Mailchimp-Campaigns-Merger
 Takes data from google sheet including Campaign List, Campaign Title, Campaign Subject, Campaign Preview, Template, List, Button Links, Image Links. Then using this data creates, updates and sends one campaign per row.
 
+## MailChimpCampaigns-ClickAnalysis
+Provides click analysis for various campaigns on one sheet with campaign id, campaign name, first name, last name, time of click.
+
 -------------------------------------------------------------------------------------------------------------------------
 DISCLAIMER: SOME PART OF THE SCRIPTS MIGHT BE TAKEN FROM OTHER SOURCES AND EDITTED ACCORDING TO MY NEEDS. NO COPYRIGHTS INFRINGEMENT INTENTED.
