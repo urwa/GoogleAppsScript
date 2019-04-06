@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        crossorigin="anonymous">
+
+    <title>UPLOAD FILE FORM</title>
+
+    <style>
+        p.help-block {
+            color: gray;
+        }
+    </style>
+
+</head>
+
+<body>
+
+
+    <div class="container">
+        <div id="formbox" style=" margin-top:50px" class="col-md-8 col-md-offset-2 col-sm-8 col-sm-offset-2">
+            <h1>UPLOAD FILE FORM</h1>
+
+            <form id="customform">
+                <fieldset>
+                    <h5>Kindly upload your files here.</h5>
+                </fieldset>
+
+                <!--EMAIL ADDRESS-->
+                <fieldset>
+                    <legend>Email Address</legend>
+                    <div class="form-group">
+                        <input id="id-email" type="email" name="email" class="form-control" required>
+                    </div>
+                </fieldset>
+
+
+                <!--FIRST NAME-->
+                <fieldset>
+                    <legend>First Name</legend>
+                    <div class="form-group">
+                        <input id="id-fname" type="text" name="fname" class="form-control" required>
+                    </div>
+                </fieldset>
+
+
+                <!--LAST NAME-->
+                <fieldset>
+                    <legend>Last Name</legend>
+                    <div class="form-group">
+                        <input id="id-lname" type="text" name="lname" class="form-control" required>
+                    </div>
+                </fieldset>
+
+
+                <!--PHONE NUMBER-->
+                <fieldset>
+                    <legend>Phone Number</legend>
+                    <div class="form-group">
+                        <input id="id-phone" type="text" name="phone" class="form-control" required>
+                    </div>
+                </fieldset>
+
+
+                <!--ADDRESS-->
+                <fieldset>
+                    <legend>ADDRESS</legend>
+                    <div class="form-group">
+                        <p class="help-block">Please enter your address.
+                        </p>
+                    </div>
+                </fieldset>
+
+
+                <!--STREET-->
+                <fieldset>
+                    <legend>Street</legend>
+                    <div class="form-group">
+                        <input id="id-street" type="text" name="street" class="form-control" required>
+                    </div>
+                </fieldset>
+
+
+                <!--CITY-->
+                <fieldset>
+                    <legend>City</legend>
+                    <div class="form-group">
+                        <input id="id-city" type="text" name="city" class="form-control" required>
+                    </div>
+                </fieldset>
+
+
+                <!--STATE-->
+                <fieldset>
+                    <legend>State</legend>
+                    <div class="form-group">
+                        <input id="id-state" type="text" name="state" class="form-control" value="Texas" required
+                            readonly>
+                    </div>
+                </fieldset>
+
+
+                <!--ZIP-->
+                <fieldset>
+                    <legend>Zip</legend>
+                    <div class="form=group">
+                        <input id="id-zip" type="text" name="zip" class="form-control" required>
+                    </div>
+                </fieldset>
+
+                <!--FILES-->
+                <fieldset>
+                    <legend>Files</legend>
+                    <div class="form-group">
+                        <p class="help-block">Please select your file.</p>
+                        <input id="id-files" name="files" type="file" class="form-control-file" required>
+                    </div>
+                </fieldset>
+
+
+                <!--SUBMIT-->
+                <div id="data"></div>
+                <input class="btn btn-primary" id="id-submit" type="submit" value="Submit">
+            </form>
+
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+            <script
+                src="https://cdnjs.cloudflare.com/ajax/libs/jquery-serialize-object/2.5.0/jquery.serialize-object.min.js">
+            </script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+                integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+                crossorigin="anonymous"></script>
+            <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+                integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+                crossorigin="anonymous"></script>
+
+            <!-- <script src="https://wzrd.in/standalone/formdata-polyfill"></script>
+            <script src="https://wzrd.in/standalone/promise-polyfill@latest"></script>
+            <script src="https://wzrd.in/standalone/whatwg-fetch@latest"></script> -->
+
+        </div>
+    </div>
+
+</body>
+
+<script>
+    $(document).ready(function () {
+
+        const scriptURL =
+            'YOUR_PUBLISHED_WEB_APP_ID';
+
+        const form = document.forms['customform'];
+
+        $('#id-files').on("change", function () {
+            var file = this.files[0];
+            var fr = new FileReader();
+            fr.fileName = file.name;
+            fr.onload = function (e) {
+                e.target.result;
+                html = '<input type="hidden" name="data" value="' + e.target.result.replace(/^.*,/,
+                    '') + '" >';
+                html += '<input type="hidden" name="mimetype" value="' + e.target.result.match(
+                    /^.*(?=;)/)[0] + '" >';
+                html += '<input type="hidden" name="filename" value="' + e.target.fileName + '" >';
+                $("#data").empty().append(html);
+            }
+            fr.readAsDataURL(file);
+        });
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            var formData = new FormData(form);
+
+            for (var pair of formData.entries()) {
+                console.log(pair[0] + ', ' + pair[1]);
+            }
+            fetch(scriptURL, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => console.log('Success!', response))
+                .catch(error => console.error('Error!', error.message))
+        })
+    });
+</script>
+
+</html>
