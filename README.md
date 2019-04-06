@@ -54,5 +54,10 @@ Takes data from google sheet including Campaign List, Campaign Title, Campaign S
 ## MailChimpCampaigns-ClickAnalysis
 Provides click analysis for various campaigns on one sheet with campaign id, campaign name, first name, last name, time of click.
 
+## HTMLFrom-GoogleSheets
+An independantly hosted HTML Form, to upload files to Google Drive and save responses + file url to Google Sheets.
+
+
+
 -------------------------------------------------------------------------------------------------------------------------
 DISCLAIMER: SOME PART OF THE SCRIPTS MIGHT BE TAKEN FROM OTHER SOURCES AND EDITTED ACCORDING TO MY NEEDS. NO COPYRIGHTS INFRINGEMENT INTENTED.
