@@ -1,0 +1,387 @@
+function insertTables(doc) {
+  
+  var tablesCreated = createTables();
+  var data = tablesCreated[0];
+  var pages = tablesCreated[1];
+  
+  var body = doc.getBody();
+  
+  if(pages == "p1") {
+    
+    var table = body.insertTable(2, data);
+    formatTable(table);
+      
+  } else if (pages == "p2") {
+      
+      var table1 = body.insertTable(2, data[0]);
+      formatTable(table1);
+      
+      body.insertPageBreak(3);
+      
+      var table2 = body.insertTable(4, data[1]);
+      formatTable(table2);
+    
+   }
+}
+
+function createTables() {
+  
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Invoice_Data");
+  
+  var headerRow = ["Type", "Date", "Details", "Time h", "Cost €"];
+  
+  var nrows = sheet.getRange("H2").getValue();
+  var npages = sheet.getRange("H3").getValue();
+  
+  var dataAll = sheet.getRange(2, 1, nrows, 5).getDisplayValues();
+  var data = [headerRow];
+  var pages;
+  
+  for(var i = 1; i <= nrows; i++) {
+    
+    if(nrows <= 10) {
+      
+      pages = "p1";
+      
+      data = data.concat(dataAll);
+      data = data.concat(_finalTotal(sheet, pages));
+      
+      break;
+    }
+    
+    if(nrows > 10 && nrows <= 30) {
+      
+      pages = "p2";
+      
+      var data1 = data.concat(dataAll.slice(0, 9));
+      data1 = data1.concat(_subTotal(sheet, pages, "bottom"));
+      
+      var data2 = data.concat(_subTotal(sheet, pages, "top"));
+      data2 = data2.concat(dataAll.slice(10, nrows - 1));
+      data2 = data2.concat(_finalTotal(sheet, pages));
+      
+      data = [data1, data2];
+      
+      break;
+    }
+  }
+  
+  var output = [data, pages];
+  return output;
+  
+}
+
+function _subTotal(sheet, pages, position) {
+  var subTotal = 0;
+  
+  if(pages == "p2") {
+    subTotal = sheet.getRange("H6").getDisplayValue();
+  }
+  
+  var subTotalRow = ["","","","",""];
+  if(position == "bottom"){
+      subTotalRow = ["Subtotal", "", "", "", subTotal];
+  } else if (position == "top") {
+      subTotalRow = ["Transfer", "", "", "", subTotal]
+  }
+  
+  return [subTotalRow];
+}
+
+function _finalTotal(sheet, pages) {
+  var subTotal = 0;
+  var taxPercent = 0;
+  var taxValue = 0;
+  var total = 0;
+  
+  if(pages == "p1") {
+    subTotal = sheet.getRange("H6").getDisplayValue();
+  } else if (pages == "p2") {
+       subTotal = sheet.getRange("H7").getDisplayValue();
+  }
+  
+  taxPercent = sheet.getRange("H10").getDisplayValue();
+  taxValue = sheet.getRange("H11").getDisplayValue();
+  total = sheet.getRange("H13").getDisplayValue();
+  
+  var emptyRow = ["", "", "", "", ""];
+  var subTotal = ["Zwischensumme", "netto", "", "", subTotal];
+  var taxRow = ["Umsatzsteuer", taxPercent, "", "", taxValue];
+  var totalRow = ["Gesamtbetrag", "", "", "", total];
+  var finalTotalRow = [emptyRow, subTotal, taxRow, totalRow];
+  
+  return finalTotalRow;
+}
+
+function formatTable(table){
+    
+    _setColumnWidth(table);
+    table.setAttributes(_formatAttrs("all"));
+  
+    for(var i = 0; i < table.getNumRows(); i++) {
+      var row = table.getRow(i);
+
+        for(var j = 0; j < row.getNumCells(); j++) {
+          var cell = row.getCell(j);
+          
+          _setCellPaddingZero(cell);
+          
+          if(i == 0 || i == table.getNumRows() - 1) {
+            cell.setBackgroundColor('#D9D9D9');
+            cell.setAttributes(_formatAttrs("borderRow"));
+          }
+          
+          if(j == 3 || j == 4) {
+            cell.getChild(0).setAttributes(_formatAttrs("numbersRow"));
+          }
+        }
+    }
+}
+
+function _formatAttrs(type) {
+ 
+  var cellFormatting = {};
+  
+  if(type == "all") {
+    cellFormatting[DocumentApp.Attribute.BORDER_WIDTH] = 0;
+    cellFormatting[DocumentApp.Attribute.FONT_SIZE] = 9;
+    cellFormatting[DocumentApp.Attribute.HORIZONTAL_ALIGNMENT] = DocumentApp.HorizontalAlignment.RIGHT;
+  }
+  if(type == "borderRow") {
+    cellFormatting[DocumentApp.Attribute.BOLD] = true; 
+    cellFormatting[DocumentApp.Attribute.FOREGROUND_COLOR] = '#000000';
+  }
+  if(type == "numbersRow") {
+    cellFormatting[DocumentApp.Attribute.HORIZONTAL_ALIGNMENT] = DocumentApp.HorizontalAlignment.RIGHT;
+  }
+  
+  return cellFormatting;
+}
+
+function _setColumnWidth(table) {
+  table.setColumnWidth(0, 100);
+  table.setColumnWidth(1, 40);
+  table.setColumnWidth(2, 230);
+  table.setColumnWidth(3, 40);
+  table.setColumnWidth(4, 40);
+}
+
+function _setCellPaddingZero(cell) {
+  cell.setPaddingTop(2);
+  cell.setPaddingBottom(2);
+  cell.setPaddingLeft(2);
+  cell.setPaddingRight(2);
+}
+
+function onOpen() {
+  SpreadsheetApp
+    .getUi()
+    .createMenu('Custom')
+    .addItem('Create Invoice', 'mergeDoc')
+    .addToUi()
+
+} 
+
+function mergeDoc() {
+  
+    var docTemplateID = 'INSERT_DOC_TEMPLATE_ID';
+    var DOC_FOLDER = 'INSERT_DOC_FOLDER_ID';
+    var PDF_FOLDER = 'INSERT_PDF_FOLDER_ID';
+    var MAIN_FOLDER = 'INSERT_MAIN_FOLDER_ID';
+  
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Invoice_Generator");
+    
+    var date = sheet.getRange('D8').getDisplayValue();
+    var invoiceNumber = sheet.getRange('D9').getDisplayValue();
+    var clientName = sheet.getRange('D10').getDisplayValue();
+    var clientNumber = sheet.getRange('D11').getDisplayValue();
+    var month = sheet.getRange('D14').getDisplayValue();
+    var year = sheet.getRange('D15').getDisplayValue();
+
+    var docTemplate = docTemplateID;
+    var docName = "Invoice";
+    var copyFileName = docName + "_" + clientName + "_" + clientNumber; 
+    var copyId = DriveApp.getFileById(docTemplate).makeCopy(copyFileName).getId();  
+    var copyDoc = DocumentApp.openById(copyId);
+  
+    insertTables(copyDoc); 
+    
+    var rowData = {
+      'date':date,
+      'invoiceNumber': invoiceNumber,
+      'clientName': clientName,
+      'clientNumber': clientNumber,
+      'month': month,
+      'year': year
+    }
+    
+    fillInTemplateFromObject(copyDoc, rowData);
+    
+    copyDoc.saveAndClose();
+        
+    var pdf = DriveApp.getFileById(copyId).getAs('application/pdf');
+    pdf.setName(copyDoc.getName() + ".pdf");
+    var file = DriveApp.createFile(pdf);
+    var fileId = file.getId();
+    var pdfFolder = DriveApp.getFolderById(PDF_FOLDER);
+    pdfFolder.addFile(file);
+    DriveApp.getFileById(fileId).getParents().next().removeFile(file);
+        
+    var docFolder = DriveApp.getFolderById(DOC_FOLDER);
+    var srcFolder = DriveApp.getFolderById(MAIN_FOLDER);
+    var docFile = DriveApp.getFileById(copyId);
+    docFolder.addFile(docFile);
+    srcFolder.removeFile(docFile);
+    
+}
+
+/**Get last row with data. Works for cleared content rows. 
+@param {spr}  sheet in current active spreadsheet.
+@return {int} integer value of the last row.
+*/
+
+function getLastRow(spr) {
+    var column = spr.getRange('A:A');
+    var values = column.getValues();
+    var ct = 0;
+    while (values[ct] && values[ct][0] != "") {
+        ct++;
+    }
+    return (ct);
+}
+
+/**
+Replaces markers in a template string with values define in a JavaScript data object.
+@param {string} template Contains markers, for instance {{Column name}}
+@param {object} data values to that will replace markers.
+For instance data.columnName will replace marker {{Column name}}
+@return {string} A string without markers. If no data is found to replace a marker,
+it is simply removed.
+*/
+function fillInTemplateFromObject(template, data) {
+    var copyBody = template.getActiveSection(); 
+    var docTemplate = template.getBody().getText();
+    // Search for all the variables to be replaced, for instance {{Column name}}
+    var templateVars = docTemplate.match(/{{[^{}]+}}/g); 
+
+    if (templateVars) {
+        // Replace variables from the template with the actual values from the data object.
+        // If no value is available, replace with the empty string.
+
+        for (var i = 0; i < templateVars.length; ++i) {
+            // normalizeHeader ignores {{}} so we can call it directly here.
+            var variableData = data[normalizeHeader(templateVars[i])]; 
+            docTemplate = copyBody.replaceText(templateVars[i], variableData || '');
+        }
+    }
+    return copyBody;
+}
+// getRowsData iterates row by row in the input range and returns an array of objects.
+// Each object contains all the data for a given row, indexed by its normalized column name.
+// Arguments:
+// - sheet: the sheet object that contains the data to be processed
+// - range: the exact range of cells where the data is stored
+// - columnHeadersRowIndex: specifies the row number where the column names are stored.
+// This argument is optional and it defaults to the row immediately above range;
+// Returns an Array of objects.
+function getRowsData(sheet, range, columnHeadersRowIndex) {
+    columnHeadersRowIndex = columnHeadersRowIndex || range.getRowIndex() - 1;
+    var numColumns = range.getEndColumn() - range.getColumn() + 1;
+    var headersRange = sheet.getRange(columnHeadersRowIndex, range.getColumn(), 1, numColumns);
+    var headers = headersRange.getValues()[0];
+    return getObjects(range.getDisplayValues(), normalizeHeaders(headers));
+}
+
+// For every row of data in data, generates an object that contains the data. Names of
+// object fields are defined in keys.
+// Arguments:
+// - data: JavaScript 2d array
+// - keys: Array of Strings that define the property names for the objects to create
+function getObjects(data, keys) {
+    var objects = [];
+    for (var i = 0; i < data.length; ++i) {
+        var object = {};
+        var hasData = false;
+        for (var j = 0; j < data[i].length; ++j) {
+            var cellData = data[i][j];
+            // if (isCellEmpty(cellData)) {
+            // continue;
+            // }
+            object[keys[j]] = cellData;
+            hasData = true;
+        }
+        if (hasData) {
+            objects.push(object);
+        }
+    }
+    return objects;
+}
+
+// Returns an Array of normalized Strings.
+// Arguments:
+// - headers: Array of Strings to normalize
+function normalizeHeaders(headers) {
+    var keys = [];
+    for (var i = 0; i < headers.length; ++i) {
+        var key = normalizeHeader(headers[i]);
+        if (key.length > 0) {
+            keys.push(key);
+        }
+    }
+    return keys;
+}
+
+// Normalizes a string, by removing all alphanumeric characters and using mixed case
+// to separate words. The output will always start with a lower case letter.
+// This function is designed to produce JavaScript object property names.
+// Arguments:
+// - header: string to normalize
+// Examples:
+// "First Name" -> "firstName"
+// "Market Cap (millions) -> "marketCapMillions
+// "1 number at the beginning is ignored" -> "numberAtTheBeginningIsIgnored"
+function normalizeHeader(header) {
+    var key = "";
+    var upperCase = false;
+    for (var i = 0; i < header.length; ++i) {
+        var letter = header[i];
+        if (letter == " " && key.length > 0) {
+            upperCase = true;
+            continue;
+        }
+        if (!isAlnum(letter)) {
+            continue;
+        }
+        if (key.length == 0 && isDigit(letter)) {
+            continue; // first character must be a letter
+        }
+        if (upperCase) {
+            upperCase = false;
+            key += letter.toUpperCase();
+        } else {
+            key += letter.toLowerCase();
+        }
+    }
+    return key;
+}
+
+// Returns true if the cell where cellData was read from is empty.
+// Arguments:
+// - cellData: string
+function isCellEmpty(cellData) {
+    return typeof (cellData) == "string" && cellData == "";
+}
+
+// Returns true if the character char is alphabetical, false otherwise.
+function isAlnum(char) {
+    return char >= 'A' && char <= 'Z' ||
+        char >= 'a' && char <= 'z' ||
+        isDigit(char);
+}
+
+// Returns true if the character char is a digit, false otherwise.
+function isDigit(char) {
+    return char >= '0' && char <= '9';
+}
