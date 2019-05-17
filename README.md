@@ -57,6 +57,8 @@ Provides click analysis for various campaigns on one sheet with campaign id, cam
 ## HTMLFrom-GoogleSheets
 An independantly hosted HTML Form, to upload files to Google Drive and save responses + file url to Google Sheets.
 
+## Invoice-Generator
+Automatically generate multipage invoice from data in Google Spreadsheet by choosing client, time period and invoice number.
 
 
 -------------------------------------------------------------------------------------------------------------------------
