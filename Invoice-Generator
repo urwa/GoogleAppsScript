@@ -1,6 +1,6 @@
 function insertTables() {
   
-  var doc = DocumentApp.openById("1J9xaDe16g06q6UTkcyQBVA2lo-h2FR4-RG4-wcp7Jac");
+  var doc = DocumentApp.openById("YOUR_DOCUMENT_ID");
   var body = doc.getBody();
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
