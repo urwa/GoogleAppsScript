@@ -60,6 +60,8 @@ An independantly hosted HTML Form, to upload files to Google Drive and save resp
 ## Invoice-Generator
 Automatically generate multipage invoice from data in Google Spreadsheet by choosing client, time period and invoice number.
 
+## GSuite-View-Reporting
+Populate GSheet with list of people viewing particular videos in Google Drive using Reports API.
 
 -------------------------------------------------------------------------------------------------------------------------
 DISCLAIMER: SOME PART OF THE SCRIPTS MIGHT BE TAKEN FROM OTHER SOURCES AND EDITTED ACCORDING TO MY NEEDS. NO COPYRIGHTS INFRINGEMENT INTENTED.
