@@ -1,0 +1,45 @@
+function onOpen() {
+    SpreadsheetApp
+        .getUi()
+        .createMenu('Custom')
+        .addItem('List All Video Views', 'listViews')
+        .addToUi()
+}
+
+function listViews() {
+  var userKey = 'all';
+  var applicationName = 'drive';
+  var optionalArgs = {
+    eventName: 'view',
+    filters: 'doc_type==mp4'
+  };
+  
+  var response = AdminReports.Activities.list(userKey, applicationName, optionalArgs);
+  var activities = response.items;
+  
+  if (activities && activities.length > 0) {
+    
+    var dataArr = [];
+    
+    for (i = 0; i < activities.length; i++) {
+      
+      var activity = activities[i];
+      dataArr.push([activity.id.time, activity.actor.email, activity.events[0].parameters[4].value]);
+      
+    }
+    
+    saveData(dataArr);
+    
+  } else {
+    Logger.log('No data found.');
+  }
+}
+
+function saveData(data){
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("Sheet1");
+  sheet.clear();
+  sheet.getRange("A1:C1").setValues([["View Time", "Email Id", "File Name"]]);
+  var sheetRange = sheet.getRange(2, 1, data.length, data[0].length);
+  sheetRange.setValues(data);
+}
