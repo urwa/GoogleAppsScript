@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+    <title>CIH FORM</title>
+
+    <style>
+        p.help-block {
+            color: gray;
+        }
+
+        .code {
+            display: none;
+        }
+    </style>
+
+</head>
+
+<body>
+
+
+    <div class="container">
+        <div id="formbox" style=" margin-top:50px" class="col-md-8 col-md-offset-2 col-sm-8 col-sm-offset-2">
+            <h1>CIH FORM</h1>
+
+            <form id="cihform" onsubmit="return validateForm()">
+
+                <!--EMAIL ADDRESS-->
+                <fieldset>
+                    <legend>Email Address</legend>
+                    <div class="form-group">
+                        <input id="id-email" type="email" name="email" class="form-control" required>
+                    </div>
+                </fieldset>
+
+
+                <!--FIRST NAME-->
+                <fieldset>
+                    <legend>First Name</legend>
+                    <div class="form-group">
+                        <input id="id-fname" type="text" name="fname" class="form-control" required>
+                    </div>
+                </fieldset>
+
+
+                <!--PHONE NUMBER-->
+                <fieldset>
+                    <legend>Phone Number</legend>
+                    <div class="form-group">
+                        <input id="id-phone" type="text" name="phone" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-info" id="id-verify">Verify Number</button>
+                    </div>
+                </fieldset>
+
+                <!--PHONE VERIFICATION CODE-->
+                <fieldset class="code">
+                    <legend>Check Your Phone!</legend>
+                    <div class="form-group">
+                        <p class="help-block">We’ve sent a six-digit confirmation code to your phone number. Enter it
+                            below to confirm your phone number.</p>
+                        <input id="id-code" type="text" name="code" class="form-control" required>
+                    </div>
+                </fieldset>
+
+                <div id="alert-msg" style="color:red"></div>
+                <input class="btn btn-primary" id="id-submit" type="submit" value="Submit">
+            </form>
+
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+            <script
+                src="https://cdnjs.cloudflare.com/ajax/libs/jquery-serialize-object/2.5.0/jquery.serialize-object.min.js">
+            </script>
+
+            <script src="https://wzrd.in/standalone/formdata-polyfill"></script>
+            <script src="https://wzrd.in/standalone/promise-polyfill@latest"></script>
+            <script src="https://wzrd.in/standalone/whatwg-fetch@latest"></script>
+
+        </div>
+    </div>
+
+</body>
+
+<script>
+    $(document).ready(function () {
+
+        $("#id-verify").click(function () {
+            var phoneno = $("#id-phone").val();
+            if (phoneno.length == 0) {
+                $("#alert-msg").text("Phone Number is missing");
+            } else {
+                google.script.run.sendCode(phoneno);
+                $("#alert-msg").text("");
+                $(".code").show();
+            }
+        });
+
+    });
+
+    function validateForm() {
+
+        var form = document.getElementById("cihform");
+
+        var isValidForm = form.checkValidity();
+
+        if (isValidForm) {
+            var code = $("#id-code").val();
+            verifyCode(code);
+            
+            return false;
+            
+        } else {
+            return false;
+        }
+    }
+
+    function verifyCode(code) {
+        google.script.run
+        .withFailureHandler(onFailure)
+        .withSuccessHandler(onSuccess)
+        .confirmCode(code);
+    }
+    
+    function onFailure(error) {
+        $("#alert-msg").text("ERROR: " + error.message);
+    }
+
+    function onSuccess(status) {
+//        window.location =
+//            'https://script.google.com/macros/s/YOUR_WEB_APP_ID/exec?toThanks=true';
+        if(status == "approved") {
+           $("#alert-msg").text("Successfully Verified and Submitted!");
+        } else {
+           $("#alert-msg").text("Sorry, could not verify. Please try again.");
+        }     
+    }
+
+</script>
+
+</html>
