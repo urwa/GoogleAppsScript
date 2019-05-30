@@ -1,0 +1,47 @@
+function sendAll() {
+  var sheet = SpreadsheetApp.getActiveSheet();
+  var startRow = 2; 
+  var numRows = sheet.getLastRow() - 1; 
+  var dataRange = sheet.getRange(startRow, 1, numRows, 2) 
+  var data = dataRange.getValues();
+ 
+  for (i in data) {
+    var row = data[i];
+    try {
+      response_data = sendSms(row[0], row[1]);
+      status = "sent";
+    } catch(err) {
+      Logger.log(err);
+      status = "error";
+    }
+    sheet.getRange(startRow + Number(i), 3).setValue(status);
+  }
+}
+
+function sendSms(to, body) {
+  
+  var YOURTWILIONUMBER = 'whatsapp:YOUR_SANDBOX_WHATSAPP_NUMBER_';
+
+  var YOURACCOUNTSID = 'YOUR_ACCOUNT_SID';
+  var YOURAUTHTOKEN = 'YOUR_AUTH_TOKEN';
+  
+  var messages_url = "https://api.twilio.com/2010-04-01/Accounts/" + YOURACCOUNTSID + "/Messages.json";
+ 
+  var payload = {
+    "To": to,
+    "Body" : body,
+    "From" : YOURTWILIONUMBER
+  };
+ 
+  var options = {
+    "method" : "post",
+    "payload" : payload,
+    "muteHttpExceptions" : true
+  };
+ 
+  options.headers = { 
+    "Authorization" : "Basic " + Utilities.base64Encode(YOURACCOUNTSID + ':' + YOURAUTHTOKEN)
+  };
+ 
+  Logger.log(UrlFetchApp.fetch(messages_url, options));
+}
