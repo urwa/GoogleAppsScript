@@ -102,8 +102,8 @@ function createRegularCampaign(recipientListId, title, subjectLine, previewText,
                            'subject_line': subjectLine,
                            'template_id': templateId,
                            'preview_text': previewText, 
-                           'reply_to': 'johann@joinimagine.org',
-                           'from_name': 'Johann Harnoss',
+                           'reply_to': 'YOUR_EMAIL_ADDRESS',
+                           'from_name': 'YOUR_NAME',
                            'to_name': '*|FNAME|*'
                           }
              };
