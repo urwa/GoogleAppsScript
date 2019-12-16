@@ -1,0 +1,11 @@
+{
+  "dataStudio": {
+    "name": "Airtable Connector",
+    "logoUrl": "https://pasteboard.co/IFUG19Y.png",
+    "company": "Urvah Shabbir",
+    "companyUrl": "https://github.com/urwa/",
+    "addonUrl": "https://github.com/urwa/GoogleAppsScript",
+    "supportUrl": "https://github.com/urwa/GoogleAppsScript",
+    "description": "Seamless integration of airtable data with Google Data Studio"
+  }
+}
