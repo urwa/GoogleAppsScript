@@ -6,6 +6,7 @@ function onOpen() {
         .addToUi()
 }
 
+// Lists view information about mp4 files uploaded on Google Drive
 function listViews() {
   var userKey = 'all';
   var applicationName = 'drive';
