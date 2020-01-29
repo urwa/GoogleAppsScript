@@ -69,5 +69,8 @@ Custom HTML form as a Google Web App with phone verification using Twilio API.
 ## Send-Whatsapp-Message-Using-Twilio
 Send Message on whatsapp using Twilio API.
 
+## Call-Reminders-Twilio-GCalendar
+Triggers a reminder by call to a user to leave for this meeting 10 mins before the meeting time using Twilio and Google Apps Script.
+
 -------------------------------------------------------------------------------------------------------------------------
 DISCLAIMER: SOME PART OF THE SCRIPTS MIGHT BE TAKEN FROM OTHER SOURCES AND EDITTED ACCORDING TO MY NEEDS. NO COPYRIGHTS INFRINGEMENT INTENTED.
