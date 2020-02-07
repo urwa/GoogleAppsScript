@@ -72,5 +72,8 @@ Send Message on whatsapp using Twilio API.
 ## Call-Reminders-Twilio-GCalendar
 Triggers a reminder by call to a user to leave for this meeting 10 mins before the meeting time using Twilio and Google Apps Script.
 
+## AutoAdd-Members-To-GoogleGroup-From-GSheets
+Automatically adds members from Google Sheets list to Google Group every time GSheet is edited with new members emails.
+
 -------------------------------------------------------------------------------------------------------------------------
 DISCLAIMER: SOME PART OF THE SCRIPTS MIGHT BE TAKEN FROM OTHER SOURCES AND EDITTED ACCORDING TO MY NEEDS. NO COPYRIGHTS INFRINGEMENT INTENTED.
