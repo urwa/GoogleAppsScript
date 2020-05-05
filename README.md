@@ -75,5 +75,9 @@ Triggers a reminder by call to a user to leave for this meeting 10 mins before t
 ## AutoAdd-Members-To-GoogleGroup-From-GSheets
 Automatically adds members from Google Sheets list to Google Group every time GSheet is edited with new members emails.
 
+## Airtable-GoogleDataStudio-Connector
+Boilerplate code to create Google Data Studio connector for Airtable. Lets you enter api key, base and table name to fetch the relevant data.
+
+
 -------------------------------------------------------------------------------------------------------------------------
 DISCLAIMER: SOME PART OF THE SCRIPTS MIGHT BE TAKEN FROM OTHER SOURCES AND EDITTED ACCORDING TO MY NEEDS. NO COPYRIGHTS INFRINGEMENT INTENTED.
